@@ -2,12 +2,13 @@ import mongoose,{Schema} from "mongoose";
 // import { asyncHandler } from "../utilities/asyncHandler.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from "crypto";
 const userSchema=new Schema({
     name:{
         type:String,
         lowercase:true,
         required:true,
-        unique:true,
+        // unique:true,
         trim:true,
         index:true,
         minLength:[5,"min length is 5"],
@@ -32,8 +33,8 @@ const userSchema=new Schema({
     },
     number:{
         type:String,
-        required:true,
-        unique:true
+        required:true
+        // unique:true
         
 
     },
@@ -89,6 +90,16 @@ userSchema.methods.generateRefreshToken=function(){
         }
     )
 }
+userSchema.methods.generatePasswordResetToken=async function(){
+    const resetToken=crypto.randomBytes(20).toString('hex');
+    this.forgotPasswordToken=crypto//encrypt krka store krana 
+            .createHash('sha256')
+            .update(resetToken)
+            .digest('hex');
+    this.forgotPasswordExpiry=Date.now()+15*60*1000;//15 min from now 
+    return resetToken;
+}
+
 
 
 export const User=mongoose.model("User",userSchema);

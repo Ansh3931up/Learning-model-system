@@ -2,7 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import ApiError from "../utilities/ApiError.js";
+// import ApiError from "../utilities/ApiError.js";
+import bodyParser from "body-parser";
 import ApiResponse from "../utilities/ApiResponse.js";
 import morgan from "morgan";
 import router from "../routes/user.routes.js";
@@ -25,6 +26,8 @@ app.use("/ping",function (res,req){
     throw new ApiResponse(200,"Hello pong");
     
 })
+
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/v1/user",router);
 // app.all("*",function(req,res){
 //     throw new ApiError(404,"page not found");

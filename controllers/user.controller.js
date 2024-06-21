@@ -3,6 +3,7 @@ import ApiError from '../utilities/ApiError.js';
 import ApiResponse from '../utilities/ApiResponse.js';
 import {asyncHandler } from '../utilities/asyncHandler.js'
 import { uploadOnCloudinary } from '../utilities/cloudinary.js';
+import sendEmail from '../utilities/sendEmail.js';
 
 
 const generateAccessandrefershToken=async(userid)=>{
@@ -27,13 +28,13 @@ const options={
     secure:true
 }
 const register=asyncHandler(async(req,res)=>{
-    const {name,email,password}=req.body;
+    const {number,name,email,password}=req.body;
 
-    if([name,email,password].some((item)=>item?.trim()==='')){
+    if([number,name,email,password].some((item)=>item?.trim()==='')){
         throw new ApiError(404,"data is incomplete");
     }
     const existing=await User.findOne({
-        $or:[{email},{name}]
+        $or:[{email},{name},{number}]
     })
     console.log(existing);
     if(existing){
@@ -62,7 +63,8 @@ const register=asyncHandler(async(req,res)=>{
         name,
         avatar:avatar.url,
         email,
-        password
+        password,
+        number
         
     })
 
@@ -80,8 +82,8 @@ const register=asyncHandler(async(req,res)=>{
     return res
         .status(201)
         .json(new ApiResponse(200,createUser,"User created successfully" )
-        .cookie("refreshToken",refreshToken,options)
-        .cookie("accessToken",accessToken,options)
+    //     .cookie("refreshToken",refreshToken,options)
+    //     .cookie("accessToken",accessToken,options)
     )
 
     }) 
@@ -139,7 +141,40 @@ const getProfile=asyncHandler(async(req,res)=>{
     .status(200)
     .json(new ApiResponse(200,user,"User data"));
 })
+const forgot=asyncHandler(async(req,res)=>{
+    const {email}=req.body;
+    const user=await User.findOne({
+        email
+    })
+    if(!user){
+        throw new ApiError(400,"User does not exists ");
+    }
+
+    const resetToken=await user.generatePasswordResetToken();
+    await user.save();
+    let ans=process.env.FRONTEND_URL;
+    console.log(ans)
+    const resetPasswordURL=`${ans}/reset-password/${resetToken}`;
+    console.log(resetPasswordURL);
+    try {
+        await sendEmail(email,'AASA HI',"heelo jiii");
 
 
 
-export {register,login,logout,getProfile};
+        res.status(200).json(new ApiResponse(200,`Reset password token has been sent to ${email} successfully`))
+        
+    } catch (error) {
+        user.forgotPasswordExpiry=undefined;
+        user.forgotPasswordToken=undefined;
+        await user.save();
+        console.log(error)
+        res.status(500).json(new ApiError(500,"email not send"))
+    }
+});
+
+const reset=asyncHandler(async(req,res)=>{
+
+})
+
+
+export {register,login,logout,getProfile,forgot,reset};
