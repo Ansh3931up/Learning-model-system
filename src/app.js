@@ -7,6 +7,7 @@ import bodyParser from "body-parser";
 import ApiResponse from "../utilities/ApiResponse.js";
 import morgan from "morgan";
 import router from "../routes/user.routes.js";
+import routers from "../routes/course.routes.js";
 const app=express();
 app.use(cors({
     origin:process.env.CORS_ORIGIN,
@@ -28,6 +29,8 @@ app.use("/ping",function (res,req){
 })
 
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use("/api/v1/courses",routers);
 app.use("/api/v1/user",router);
 // app.all("*",function(req,res){
 //     throw new ApiError(404,"page not found");

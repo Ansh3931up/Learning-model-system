@@ -104,10 +104,10 @@ const login=asyncHandler(async(req,res)=>{
     }
     const {accessToken,refreshToken}=await generateAccessandrefershToken(user._id);
     return res
+        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, options)
         .status(200)
-        .json( new ApiResponse(200,'you are logged in'))
-        .cookie("refreshToken",refreshToken,options)
-        .cookie("accessToken",accessToken,options)
+        .json(new ApiResponse(200, 'You are logged in'));
 
 
     
@@ -204,6 +204,55 @@ const reset=asyncHandler(async(req,res)=>{
     
 
 })
+const changeCurrentPassword=asyncHandler(async(req,res)=>{
+    const {oldPassword,newPassword}=req.body;
+    // if(newPassword!=confPassword){
+    //     throw new ApiError(400,"newpassword and confpassword is not same")
+    // }
+
+    const user=await User.findById(req.user?._id)
+    const isPasswordValids=await user.isPasswordCorrect(oldPassword)
+    if(!isPasswordValids){
+        throw new ApiError(401,"unauthorized access wrong password")
+    }
+
+    user.password=newPassword
+    await user.save({validateBeforeSave:false})// baaki sab same rhta hai
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200,"password changed successfully"))
+})
+
+const getCurrentUser=asyncHandler(async(req,res)=>{
+    const user=req.user;
+    // console.log(user)
+    return res
+    .status(200)
+    .json(new ApiResponse(200,user,"current user fetched successfully"))
+})
+
+const updateAccountDetails=asyncHandler(async(req,res)=>{
+    const {name,email,role}=req.body
+    if(!name||!email||!role){
+        throw new ApiError(404,"all fields are required")
+    }
+    const newuser= await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:
+            {name,email,role}
+        },
+        {
+            new:
+            true
+        }
+    ).select("-password -refreshToken")
+    console.log(newuser);
+    return res
+        .status(200)
+        .json(new ApiResponse(200,"Account details updated successfully"))
+})
 
 
-export {register,login,logout,getProfile,forgot,reset};
+export {register,login,logout,getProfile,forgot,reset,updateAccountDetails,changeCurrentPassword,getCurrentUser};
