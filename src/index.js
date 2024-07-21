@@ -1,7 +1,7 @@
 import app from "./app.js";
 import connectdb from "../database/connectdb.js";
 import Razorpay from "razorpay";
-const PORT=3225
+const PORT=3000
 // console.log(process.env.RAZORPAY_KEY)
 export const razorpay= new Razorpay({
     key_id:process.env.RAZORPAY_KEY,
