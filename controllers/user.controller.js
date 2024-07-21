@@ -27,7 +27,7 @@ const options={
     maxAge:7*24*60*60*1000,
     httpOnly:false,
     secure:true,
-    sameSite:'Lax'
+    sameSite:'None'
 }
 const register=asyncHandler(async(req,res)=>{
     const {fullname,email,password,State,Pincode,address,role}=req.body;
