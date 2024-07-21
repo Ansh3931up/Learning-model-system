@@ -10,8 +10,8 @@ import userRouter from "../routes/user.routes.js";
 import blogRouter from "../routes/blog.routes.js";
 import paymentRouter from "../routes/payment.routes.js";
 import photoRouter from "../routes/gallery.routes.js";
-const app=express();
-const allowedOrigin = 'https://rss-react-anshs-projects-8a0075b6.vercel.app';
+const app=express();   
+const allowedOrigin = 'https://rss-react-91ogp3w6f-anshs-projects-8a0075b6.vercel.app/';
 app.set("trust proxy", true);
 
 const corsOptions = {
