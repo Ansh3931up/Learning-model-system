@@ -25,7 +25,7 @@ const generateAccessandrefershToken=async(userid)=>{
 }
 const options={
     maxAge:7*24*60*60*1000,
-    httpOnly:true,
+    httpOnly:false,
     secure:true
 }
 const register=asyncHandler(async(req,res)=>{
