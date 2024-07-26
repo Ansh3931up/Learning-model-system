@@ -55,6 +55,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
     }
 
     try {
+        console.log("1");
         await Payment.create({
             razorpay_payment_id,
             razorpay_signature,
@@ -62,11 +63,13 @@ const verifyPayment = asyncHandler(async (req, res) => {
         });
 
         // Find the paycard by its ID
+        console.log("2")
         const paycard = await Paycard.findById(paycardid);
-
+        console.log("3")
         if (!paycard) {
             throw new ApiError(404, "Paycard not found");
         }
+        console.log("4")
 
         // Add Paycard details to isSubscribed array
         user.isSubscribed.push({
@@ -76,6 +79,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
             preview: paycard.preview,
             thumbnail: paycard.thumbnail
         });
+        console.log("5")
 
         await user.save();
 
