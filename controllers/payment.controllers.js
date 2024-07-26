@@ -3,58 +3,57 @@ import ApiResponse from "../utilities/ApiResponse.js";
 import { asyncHandler } from "../utilities/asyncHandler.js";
 import { User } from "../module/user.model.js";
 import { razorpay } from "../src/index.js";
+import crypto from "crypto";
+import Payment from "../module/payment.model.js";
 
 const getRazorpayApiKey = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, process.env.RAZORPAY_KEY));
 });
 
-const buyScription = asyncHandler(async (req, res) => {
+const buySubscription = asyncHandler(async (req, res) => {
     const { id } = req.user;
+    console.log(id)
     const user = await User.findById(id);
+    console.log(user)
 
     if (!user) {
-        return new ApiError(404, 'Unauthorized error');
+        throw new ApiError(404, 'Unauthorized error');
     }
 
-    // if (user.role === "ADMIN") {
-    //     throw new ApiError(404, "Admin can't purchase the course");
-    // }
-
     try {
-        const subscription = await razorpay.subscriptions.create({
-            // plan_id: process.env.RAZORPAY_PLAN,
-            customer_notify: 1
-        });
-
-        user.subscription.id = subscription.id;
-        user.subscription.status = subscription.status;
-        await user.save();
-
-        return res.status(200).json(new ApiResponse(200, subscription.id, 'Subscribed successfully'));
+        console.log("body",req.body)
+        const { amount, currency, receipt, notes } = req.body;
+        const options = {
+            amount: 50000, // amount in the smallest currency unit
+            currency:"INR",
+            receipt:"hjfvghfthfhg"
+        };
+        console.log("options",options)
+        const order = await razorpay.orders.create(options);
+        console.log(order)
+        return res.status(200).json(new ApiResponse(200, order, 'Order created successfully'));
     } catch (error) {
-        console.error("Error creating subscription:", error);
-        throw new ApiError(500, "Failed to create subscription");
+        console.error("Error creating order:", error);
+        throw new ApiError(500, "Failed to create order");
     }
 });
 
-const verifySubscription = asyncHandler(async (req, res) => {
+const verifyPayment = asyncHandler(async (req, res) => {
     const { id } = req.user;
     const user = await User.findById(id);
-    const { razorpay_payment_id, razorpay_signature, razorpay_subscription_id } = req.body;
+    const { razorpay_payment_id, razorpay_signature, razorpay_order_id } = req.body;
 
     if (!user) {
-        return new ApiError(404, 'Unauthorized error');
+        throw new ApiError(404, 'Unauthorized error');
     }
-
-    const subscriptionId = user.subscription.id;
 
     const generatedSignature = crypto
         .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-        .update(`${razorpay_payment_id}|${subscriptionId}`)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest('hex');
 
     if (generatedSignature !== razorpay_signature) {
-        throw new ApiError(500, "Payment failed");
+        throw new ApiError(500, "Payment verification failed");
     }
 
     try {
@@ -62,43 +61,13 @@ const verifySubscription = asyncHandler(async (req, res) => {
         await Payment.create({
             razorpay_payment_id,
             razorpay_signature,
-            razorpay_subscription_id
+            razorpay_order_id
         });
 
-        user.subscription.status = 'active';
-        await user.save();
-
-        return res.status(200).json(new ApiResponse(200, user, "Verified"));
+        return res.status(200).json(new ApiResponse(200, "Payment verified successfully"));
     } catch (error) {
-        console.error("Error verifying subscription:", error);
-        throw new ApiError(500, "Failed to verify subscription");
-    }
-});
-
-const cancelSubscription = asyncHandler(async (req, res) => {
-    const { id } = req.user;
-    const user = await User.findById(id);
-
-    if (!user) {
-        return new ApiError(404, 'Unauthorized error');
-    }
-
-    if (user.role === "ADMIN") {
-        throw new ApiError(404, "Admin can't cancel the subscription");
-    }
-
-    const subscriptionId = user.subscription.id;
-
-    try {
-        const subscription = await razorpay.subscriptions.cancel(subscriptionId);
-
-        user.subscription.status = subscription.status;
-        await user.save();
-
-        return res.status(200).json(new ApiResponse(200, "Cancelled subscription"));
-    } catch (error) {
-        console.error("Error cancelling subscription:", error);
-        throw new ApiError(500, "Failed to cancel subscription");
+        console.error("Error verifying payment:", error);
+        throw new ApiError(500, "Failed to verify payment");
     }
 });
 
@@ -118,9 +87,8 @@ const allPayments = asyncHandler(async (req, res) => {
 });
 
 export {
-    buyScription,
+    buySubscription,
     getRazorpayApiKey,
-    verifySubscription,
+    verifyPayment,
     allPayments,
-    cancelSubscription
 };

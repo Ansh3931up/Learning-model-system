@@ -6,7 +6,20 @@ import { uploadOnCloudinary } from '../utilities/cloudinary.js';
 import sendEmail from '../utilities/sendEmail.js';
 import crypto from "crypto";
 
-
+const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find({}).select('-posts'); // Assuming 'posts' is analogous to 'lectures' in Blog model
+    // const totalUsers = users.length;
+    return res
+        .status(200)
+        .json(new ApiResponse(200, users, "All users present"));
+});
+const filterByPincode=asyncHandler(async(req,res)=>{
+    const {Pincode}=req.params;
+    const users=await User.find({Pincode:Pincode}).select("-password -refreshToken");
+    return res
+        .status(200)
+        .json(new ApiResponse(200,users,"User filtered by Pincode successfully"))
+})
 const generateAccessandrefershToken=async(userid)=>{
     try {
         const user=await User.findById(userid)
@@ -25,7 +38,11 @@ const generateAccessandrefershToken=async(userid)=>{
 }
 const options={
     maxAge:7*24*60*60*1000,
+<<<<<<< HEAD
     httpOnly:false,
+=======
+    httpOnly:true,
+>>>>>>> 992011f (final project)
     secure:true,
     sameSite:'None'
 }
@@ -69,7 +86,7 @@ const register=asyncHandler(async(req,res)=>{
         State,
         Pincode,
         address,
-        role
+        role,
         
         
     })
@@ -95,7 +112,7 @@ const register=asyncHandler(async(req,res)=>{
     }) 
 const login=asyncHandler(async(req,res)=>{
     const {fullname,email,password}=req.body;
-   
+    console.log("yaha dekho",fullname,email,password)
     const user=await User.findOne({
         $or:[{email},{fullname}]
     })
@@ -264,6 +281,24 @@ const updateAccountDetails=asyncHandler(async(req,res)=>{
         .status(200)
         .json(new ApiResponse(200,newuser,"Account details updated successfully"))
 })
+const calculateTotalRevenue = asyncHandler(async (req, res) => {
+    const users = await User.find({}).populate('isSubscribed', 'price');
+    let totalRevenue = 0;
+
+    users.forEach(user => {
+        user.isSubscribed.forEach(subscription => {
+            totalRevenue += parseFloat(subscription.price);
+        });
+    });
+
+    return res.status(200).json(new ApiResponse(200, totalRevenue, "Total revenue calculated successfully"));
+});
 
 
+<<<<<<< HEAD
 export {register,login,logout,getProfile,forgot,reset,updateAccountDetails,changeCurrentPassword,getCurrentUser};
+=======
+
+
+export {register,filterByPincode,getAllUsers,login,logout,getProfile,forgot,reset,calculateTotalRevenue,updateAccountDetails,changeCurrentPassword,getCurrentUser};
+>>>>>>> 992011f (final project)

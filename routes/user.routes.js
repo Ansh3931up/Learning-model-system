@@ -1,7 +1,7 @@
 import { Router } from "express";
-import {register,login,logout,getProfile,forgot,reset,updateAccountDetails,changeCurrentPassword,getCurrentUser} from "../controllers/user.controller.js";
+import {register,filterByPincode,login,logout,getProfile,getAllUsers,forgot,reset,updateAccountDetails,changeCurrentPassword,getCurrentUser, calculateTotalRevenue} from "../controllers/user.controller.js";
 import {upload} from "../middleware/multer.middleware.js"
-import { verifyjwt } from "../middleware/auth.middleware.js";
+import { authorizedRoles, verifyjwt } from "../middleware/auth.middleware.js";
 const router=Router();
 
 router.route("/register").post(upload.single("avatar"),register);
@@ -13,4 +13,7 @@ router.route("/reset/:resetToken").post(reset);
 router.route("/user-details").post(verifyjwt,getCurrentUser);
 router.route("/change-password").post(verifyjwt,changeCurrentPassword);
 router.route("/change-details").post(verifyjwt,updateAccountDetails);
+router.route("/alldata").get(verifyjwt,authorizedRoles("ADMIN"),getAllUsers);
+router.route('/total-revenue').get(verifyjwt,authorizedRoles("ADMIN"),calculateTotalRevenue);
+router.route('/filter/:Pincode').get(verifyjwt,authorizedRoles("ADMIN"),filterByPincode);
 export default router;
