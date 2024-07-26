@@ -87,6 +87,7 @@ const register=asyncHandler(async(req,res)=>{
         Pincode,
         address,
         role,
+        isSubscribed:[]
         
         
     })
