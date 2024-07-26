@@ -43,10 +43,10 @@ const userSchema = new Schema({
         type: String, // cloudinary url
         required: true
     },
-    isSubscribed: [{
-        type: Schema.Types.ObjectId,
-        ref: "Paycard"   
-    }],
+   isSubscribed: {
+        type: [Object], // or use a specific schema if needed
+        default: []
+    },
     refreshToken: {
         type: String,
         unique: true
