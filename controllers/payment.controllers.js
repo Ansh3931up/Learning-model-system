@@ -5,6 +5,7 @@ import { User } from "../module/user.model.js";
 import { razorpay } from "../src/index.js";
 import crypto from "crypto";
 import Payment from "../module/payment.model.js";
+import { Paycard } from "../module/paycard.model.js"; // Import Paycard model
 
 const getRazorpayApiKey = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, process.env.RAZORPAY_KEY));
@@ -12,25 +13,21 @@ const getRazorpayApiKey = asyncHandler(async (req, res) => {
 
 const buySubscription = asyncHandler(async (req, res) => {
     const { id } = req.user;
-    console.log(id)
     const user = await User.findById(id);
-    console.log(user)
 
     if (!user) {
         throw new ApiError(404, 'Unauthorized error');
     }
 
     try {
-        console.log("body",req.body)
         const { amount, currency, receipt, notes } = req.body;
         const options = {
             amount: 50000, // amount in the smallest currency unit
-            currency:"INR",
-            receipt:"hjfvghfthfhg"
+            currency: "INR",
+            receipt: "hjfvghfthfhg"
         };
-        console.log("options",options)
+
         const order = await razorpay.orders.create(options);
-        console.log(order)
         return res.status(200).json(new ApiResponse(200, order, 'Order created successfully'));
     } catch (error) {
         console.error("Error creating order:", error);
@@ -41,7 +38,7 @@ const buySubscription = asyncHandler(async (req, res) => {
 const verifyPayment = asyncHandler(async (req, res) => {
     const { id } = req.user;
     const user = await User.findById(id);
-    const { razorpay_payment_id, razorpay_signature, razorpay_order_id } = req.body;
+    const { razorpay_payment_id, razorpay_signature, razorpay_order_id, paycardId } = req.body;
 
     if (!user) {
         throw new ApiError(404, 'Unauthorized error');
@@ -57,14 +54,31 @@ const verifyPayment = asyncHandler(async (req, res) => {
     }
 
     try {
-        // Assuming `Payment` model or similar is defined elsewhere
         await Payment.create({
             razorpay_payment_id,
             razorpay_signature,
             razorpay_order_id
         });
 
-        return res.status(200).json(new ApiResponse(200, "Payment verified successfully"));
+        // Find the paycard by its ID
+        const paycard = await Paycard.findById(paycardId);
+
+        if (!paycard) {
+            throw new ApiError(404, "Paycard not found");
+        }
+
+        // Add Paycard details to isSubscribed array
+        user.isSubscribed.push({
+            title: paycard.title,
+            description: paycard.description,
+            price: paycard.price,
+            preview: paycard.preview,
+            thumbnail: paycard.thumbnail
+        });
+
+        await user.save();
+
+        return res.status(200).json(new ApiResponse(200, "Payment verified and subscription updated successfully"));
     } catch (error) {
         console.error("Error verifying payment:", error);
         throw new ApiError(500, "Failed to verify payment");
