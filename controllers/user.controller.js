@@ -296,7 +296,7 @@ const calculateTotalRevenue = asyncHandler(async (req, res) => {
 
 
 
-export {register,login,logout,getProfile,forgot,reset,updateAccountDetails,changeCurrentPassword,getCurrentUser};
+// export {register,login,logout,getProfile,forgot,reset,updateAccountDetails,changeCurrentPassword,getCurrentUser};-----------
 
 
 
