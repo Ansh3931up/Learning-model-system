@@ -39,6 +39,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
     const { id } = req.user;
     const user = await User.findById(id);
     const { razorpay_payment_id, razorpay_signature, razorpay_order_id, paycardid } = req.body;
+    console.log(paycardid)
 
     if (!user) {
         throw new ApiError(404, 'Unauthorized error');
