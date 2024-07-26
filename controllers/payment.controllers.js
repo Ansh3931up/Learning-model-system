@@ -78,7 +78,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
         await user.save();
 
-        return res.status(200).json(new ApiResponse(200, "Payment verified and subscription updated successfully"));
+        return res.status(200).json(new ApiResponse(200,user, "Payment verified and subscription updated successfully"));
     } catch (error) {
         console.error("Error verifying payment:", error);
         throw new ApiError(500, "Failed to verify payment");
