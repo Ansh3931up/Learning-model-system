@@ -38,7 +38,7 @@ const buySubscription = asyncHandler(async (req, res) => {
 const verifyPayment = asyncHandler(async (req, res) => {
     const { id } = req.user;
     const user = await User.findById(id);
-    const { razorpay_payment_id, razorpay_signature, razorpay_order_id, paycardId } = req.body;
+    const { razorpay_payment_id, razorpay_signature, razorpay_order_id, paycardid } = req.body;
 
     if (!user) {
         throw new ApiError(404, 'Unauthorized error');
@@ -61,7 +61,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
         });
 
         // Find the paycard by its ID
-        const paycard = await Paycard.findById(paycardId);
+        const paycard = await Paycard.findById(paycardid);
 
         if (!paycard) {
             throw new ApiError(404, "Paycard not found");
