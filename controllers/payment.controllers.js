@@ -70,9 +70,11 @@ const verifyPayment = asyncHandler(async (req, res) => {
             throw new ApiError(404, "Paycard not found");
         }
         console.log("4")
-
+        if (!Array.isArray(user.isSubscribed)) {
+         user.isSubscribed = [];
+        }
         // Add Paycard details to isSubscribed array
-        User.isSubscribed.push({
+        user.isSubscribed.push({
             title: paycard.title,
             description: paycard.description,
             price: paycard.price,
