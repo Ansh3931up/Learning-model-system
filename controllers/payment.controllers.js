@@ -72,7 +72,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
         console.log("4")
 
         // Add Paycard details to isSubscribed array
-        user.isSubscribed.push({
+        User.isSubscribed.push({
             title: paycard.title,
             description: paycard.description,
             price: paycard.price,
